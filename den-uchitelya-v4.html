@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>С Днём Учителя!</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --board:#24392F;
+    --board-deep:#182922;
+    --wood:#7A5232;
+    --wood-dark:#5C3C22;
+    --cream:#F6EFDD;
+    --cream-soft:#FBF7EC;
+    --gold:#D9AC4F;
+    --rust:#C1642F;
+    --chalk:#F4F1E6;
+    --chalk-dim:rgba(244,241,230,0.55);
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    font-family:'Nunito',sans-serif;
+    background:var(--board);
+    color:var(--chalk);
+    overflow:hidden;
+  }
+  body.unlocked{overflow:auto;}
+  h1,h2{margin:0;font-weight:700;}
+  p{margin:0;}
+  button{font-family:inherit;}
+  ::selection{background:var(--gold);color:var(--board-deep);}
+
+  .board-texture{
+    background-image:
+      radial-gradient(rgba(244,241,230,0.05) 1px, transparent 1px),
+      radial-gradient(rgba(244,241,230,0.04) 1px, transparent 1px);
+    background-size:26px 26px, 34px 34px;
+    background-position:0 0, 13px 17px;
+  }
+  .wood-edge{position:relative;}
+  .wood-edge::before,.wood-edge::after{
+    content:"";position:absolute;left:0;right:0;height:10px;
+    background:linear-gradient(180deg,var(--wood),var(--wood-dark));z-index:6;
+  }
+  .wood-edge::before{top:0;box-shadow:0 2px 6px rgba(0,0,0,0.35) inset;}
+  .wood-edge::after{bottom:0;box-shadow:0 -2px 6px rgba(0,0,0,0.35) inset;}
+
+  #dust-layer{position:fixed;inset:0;pointer-events:none;z-index:5;overflow:hidden;}
+  .mote{position:absolute;bottom:-10px;border-radius:50%;background:var(--chalk-dim);animation:rise linear infinite;}
+  @keyframes rise{
+    0%{transform:translateY(0) translateX(0);opacity:0;}
+    10%{opacity:.6;}90%{opacity:.25;}
+    100%{transform:translateY(-110vh) translateX(24px);opacity:0;}
+  }
+
+  /* ===================== СТАДИЯ 1 — КОНВЕРТ ===================== */
+  #stage-envelope{
+    position:fixed;inset:0;z-index:50;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px;
+    background:radial-gradient(ellipse at 50% 30%, #2c4638 0%, var(--board) 60%, var(--board-deep) 100%);
+    transition:opacity .7s ease;padding:24px;text-align:center;
+  }
+  #stage-envelope.opened{opacity:0;pointer-events:none;}
+  .envelope-hint{font-family:'Caveat',cursive;font-size:clamp(22px,5vw,30px);color:var(--chalk);max-width:320px;line-height:1.3;}
+  .envelope{position:relative;width:min(78vw,280px);height:calc(min(78vw,280px) * 0.62);cursor:pointer;perspective:900px;}
+  .env-body{position:absolute;inset:0;background:var(--cream);border-radius:8px;box-shadow:0 18px 40px rgba(0,0,0,0.45);}
+  .env-body::before,.env-body::after{content:"";position:absolute;bottom:0;width:52%;height:78%;border-bottom:2px solid rgba(0,0,0,0.08);}
+  .env-body::before{left:0;border-right:2px solid rgba(0,0,0,0.08);clip-path:polygon(0 0,100% 100%,0 100%);}
+  .env-body::after{right:0;border-left:2px solid rgba(0,0,0,0.08);clip-path:polygon(100% 0,100% 100%,0 100%);}
+  .env-letter-peek{
+    position:absolute;left:8%;right:8%;top:-6%;height:70%;background:var(--cream-soft);
+    border-radius:6px 6px 0 0;box-shadow:0 -2px 10px rgba(0,0,0,0.12);z-index:1;
+    transition:transform .9s cubic-bezier(.22,.9,.3,1), opacity .6s ease .2s;
+  }
+  .envelope.opened .env-letter-peek{transform:translateY(-165%) scale(1.04);opacity:0;}
+  .env-flap{
+    position:absolute;top:0;left:0;right:0;height:58%;background:linear-gradient(155deg,#EFE6CF,var(--cream));
+    clip-path:polygon(0 0,100% 0,50% 100%);transform-origin:top center;transform:rotateX(0deg);
+    transition:transform .8s cubic-bezier(.6,.05,.3,1);z-index:3;box-shadow:0 2px 6px rgba(0,0,0,0.15);
+  }
+  .envelope.opened .env-flap{transform:rotateX(178deg);z-index:0;}
+  .env-seal{
+    position:absolute;left:50%;top:40%;width:52px;height:52px;transform:translate(-50%,-50%);border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, var(--rust), #8f4620 75%);
+    display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(0,0,0,0.35);z-index:4;
+    transition:transform .5s ease, opacity .5s ease;
+  }
+  .envelope.opened .env-seal{transform:translate(-50%,-50%) scale(0.4) rotate(25deg);opacity:0;}
+  .env-seal svg{width:26px;height:26px;stroke:var(--cream-soft);fill:none;stroke-width:4.5;}
+  .tap-cue{font-size:13px;letter-spacing:.06em;color:var(--chalk-dim);animation:pulse 2.2s ease-in-out infinite;}
+  @keyframes pulse{0%,100%{opacity:.5;}50%{opacity:1;}}
+
+  /* ===================== ОБЩЕЕ ===================== */
+  #content{position:relative;z-index:2;scroll-snap-type:y proximity;}
+  .stage{min-height:100vh;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;scroll-snap-align:start;padding:56px 24px;position:relative;overflow:hidden;}
+
+  /* ===================== СТАДИЯ 2 — ГЕРОЙ: ИЛЛЮСТРАЦИЯ ОКНА ===================== */
+  .stage-hero{background:var(--board-deep);gap:14px;text-align:center;}
+  .hero-scene{position:absolute;inset:0;width:100%;height:100%;z-index:0;}
+  .hero-scrim{
+    position:absolute;inset:0;z-index:1;
+    background:linear-gradient(180deg, rgba(15,26,20,0.72) 0%, rgba(15,26,20,0.28) 32%, rgba(15,26,20,0.42) 68%, rgba(15,26,20,0.82) 100%);
+  }
+  .hero-content{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:14px;}
+
+  .chalk-eyebrow{font-size:13px;letter-spacing:.1em;color:var(--chalk-dim);opacity:0;animation:fade-up .6s ease forwards;animation-delay:.05s;}
+  .chalk-title{
+    font-family:'Caveat',cursive;font-size:clamp(48px,11.5vw,92px);line-height:1.03;color:var(--chalk);
+    text-shadow:0 2px 20px rgba(0,0,0,0.35);clip-path:inset(0 100% 0 0);
+    animation:chalk-reveal 1.1s ease forwards;animation-delay:.25s;
+  }
+  @keyframes chalk-reveal{to{clip-path:inset(0 0 0 0);}}
+  .chalk-sub{font-family:'Caveat',cursive;font-size:clamp(20px,4.5vw,26px);color:var(--gold);letter-spacing:.04em;opacity:0;animation:fade-up .7s ease forwards;animation-delay:1.3s;}
+  .chalk-line{font-size:15px;color:var(--chalk-dim);line-height:1.6;margin-top:2px;max-width:320px;opacity:0;animation:fade-up .7s ease forwards;animation-delay:1.55s;}
+  @keyframes fade-up{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+
+  .sound-btn{
+    margin-top:20px;display:flex;align-items:center;gap:9px;background:rgba(0,0,0,0.15);
+    border:1px solid rgba(244,241,230,0.35);color:var(--chalk);padding:10px 18px;border-radius:999px;
+    cursor:pointer;font-size:13px;letter-spacing:.02em;opacity:0;
+    animation:fade-up .7s ease forwards;animation-delay:1.8s;
+    transition:border-color .25s ease, background .25s ease;
+    backdrop-filter:blur(3px);
+  }
+  .sound-btn:hover,.sound-btn:focus-visible{border-color:var(--gold);background:rgba(217,172,79,0.15);}
+  .sound-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;}
+  .scroll-cue{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);font-size:12px;color:var(--chalk-dim);animation:bob 2s ease-in-out infinite;z-index:2;}
+  @keyframes bob{0%,100%{transform:translate(-50%,0);}50%{transform:translate(-50%,6px);}}
+
+  /* ===================== СТАДИЯ 3 — МОЗАИКА ===================== */
+  .stage-subjects{background:var(--board-deep);gap:30px;}
+  .subjects-heading{font-family:'Caveat',cursive;font-size:clamp(28px,6vw,38px);color:var(--chalk);text-align:center;}
+  .subjects-grid{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;max-width:560px;}
+  .subject-tag{
+    font-size:14px;color:var(--chalk);border:1px solid rgba(217,172,79,0.4);background:rgba(217,172,79,0.06);
+    padding:9px 16px 9px 14px;border-radius:999px;opacity:0;transform:translateY(8px) scale(.96);animation:tag-in .5s ease forwards;
+  }
+  .subject-tag::before{content:"✦";color:var(--gold);margin-right:7px;font-size:11px;}
+  @keyframes tag-in{to{opacity:1;transform:translateY(0) scale(1);}}
+
+  /* ===================== СТАДИЯ 4 — ПИСЬМО ===================== */
+  .stage-letter{background:var(--cream);color:#2b2620;}
+  .stage-letter::before{
+    content:"";position:absolute;inset:0;opacity:.05;mix-blend-mode:multiply;pointer-events:none;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  }
+  .paper-card{max-width:540px;text-align:center;position:relative;z-index:1;}
+  .sprigs{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:2px;}
+  .sprigs svg{width:44px;height:26px;stroke:var(--gold);fill:none;stroke-width:2;stroke-linecap:round;}
+  .sprigs svg.right{transform:scaleX(-1);}
+  .paper-card h2{font-family:'Caveat',cursive;font-size:clamp(36px,7.5vw,52px);color:var(--rust);margin-bottom:22px;}
+  .paper-card p{font-size:16px;line-height:1.75;color:#403a30;margin-bottom:16px;}
+  .signature{margin-top:22px;font-family:'Caveat',cursive;font-size:24px;color:var(--rust);}
+
+  /* ===================== СТАДИЯ 5 — ФУТЕР ===================== */
+  .stage-footer{background:var(--board-deep);min-height:44vh;gap:10px;}
+  .footer-line{font-family:'Caveat',cursive;font-size:28px;color:var(--gold);}
+  .footer-credit{font-size:11px;color:var(--chalk-dim);letter-spacing:.05em;}
+
+  .sound-btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
+  @media (prefers-reduced-motion: reduce){
+    .chalk-title,.chalk-sub,.chalk-line,.sound-btn,.tap-cue,.scroll-cue,.mote,.subject-tag,.chalk-eyebrow{
+      animation:none !important;opacity:1 !important;clip-path:none !important;transform:none !important;
+    }
+  }
+</style>
+</head>
+<body class="locked">
+
+  <!-- ============================================================
+       ✏️ РЕДАКТИРУЙТЕ ЗДЕСЬ: дата, текст письма и список предметов
+       находятся в объекте CONFIG внизу файла, в <script>.
+  ============================================================= -->
+
+  <div id="dust-layer"></div>
+
+  <section id="stage-envelope">
+    <p class="envelope-hint">Тёплое послание для всех учителей</p>
+    <div class="envelope" id="envelope">
+      <div class="env-body"></div>
+      <div class="env-letter-peek"></div>
+      <div class="env-flap"></div>
+      <div class="env-seal">
+        <svg viewBox="0 0 24 24"><path d="M12 4c-2 2-5 2-6 5 -1 4 2 8 6 9 4-1 7-5 6-9 -1-3-4-3-6-5Z"/></svg>
+      </div>
+    </div>
+    <p class="tap-cue">нажмите, чтобы открыть</p>
+  </section>
+
+  <main id="content">
+
+    <section class="stage stage-hero">
+      <!-- Иллюстрация: окно класса на закате -->
+      <svg class="hero-scene" id="hero-svg" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <clipPath id="windowClip">
+            <path d="M150 470 L150 220 Q150 55 400 55 Q650 55 650 220 L650 470 Z"/>
+          </clipPath>
+          <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#1c3327"/>
+            <stop offset="42%" stop-color="#3c5c45"/>
+            <stop offset="72%" stop-color="#c9803f"/>
+            <stop offset="100%" stop-color="#eeb262"/>
+          </linearGradient>
+          <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#f7dd9a" stop-opacity="0.95"/>
+            <stop offset="100%" stop-color="#f7dd9a" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+
+        <rect width="800" height="500" fill="#182922"/>
+
+        <g clip-path="url(#windowClip)">
+          <rect x="150" y="55" width="500" height="415" fill="url(#skyGrad)"/>
+          <circle cx="400" cy="330" r="95" fill="url(#sunGlow)"/>
+          <circle cx="400" cy="330" r="44" fill="#f8e2a8" opacity="0.9"/>
+          <path d="M150 405 Q260 365 400 390 T650 372 L650 470 L150 470 Z" fill="#152720"/>
+          <path d="M150 432 Q280 408 400 422 T650 412 L650 470 L150 470 Z" fill="#0f1d17"/>
+        </g>
+
+        <path d="M150 470 L150 220 Q150 55 400 55 Q650 55 650 220 L650 470" fill="none" stroke="#6B4A2C" stroke-width="18" stroke-linejoin="round"/>
+        <g stroke="#6B4A2C" stroke-width="9" clip-path="url(#windowClip)">
+          <line x1="400" y1="55" x2="400" y2="470"/>
+          <line x1="150" y1="268" x2="650" y2="268"/>
+        </g>
+        <rect x="118" y="464" width="564" height="22" rx="4" fill="#6B4A2C"/>
+
+        <!-- растение слева -->
+        <g transform="translate(195,464)">
+          <rect x="-18" y="-28" width="36" height="30" rx="4" fill="#5C3C22"/>
+          <path d="M0 -28 C-22 -58 -10 -86 0 -98 C10 -86 22 -58 0 -28Z" fill="#2E4A3D"/>
+          <path d="M0 -30 C-14 -52 4 -76 9 -58 C12 -44 -2 -36 0 -30Z" fill="#4a7059"/>
+        </g>
+
+        <!-- книги и яблоко справа -->
+        <g transform="translate(555,464)">
+          <rect x="-30" y="-14" width="60" height="14" rx="2" fill="#C1642F"/>
+          <rect x="-26" y="-27" width="52" height="14" rx="2" fill="#D9AC4F"/>
+          <rect x="-22" y="-40" width="44" height="14" rx="2" fill="#8FA37E"/>
+          <circle cx="-2" cy="-54" r="10" fill="#B5442A"/>
+          <path d="M-2 -64 L0 -70" stroke="#4a2f18" stroke-width="3" fill="none"/>
+        </g>
+
+        <!-- лампа -->
+        <g transform="translate(400,25)">
+          <g id="lamp-swing">
+            <line x1="0" y1="0" x2="0" y2="52" stroke="#6B4A2C" stroke-width="3"/>
+            <circle cx="0" cy="66" r="15" fill="#f8e2a8"/>
+            <circle cx="0" cy="66" r="28" fill="#f8e2a8" opacity="0.22">
+              <animate attributeName="opacity" values="0.12;0.32;0.12" dur="3.2s" repeatCount="indefinite"/>
+            </circle>
+            <animateTransform attributeName="transform" type="rotate" values="-4 0 0;4 0 0;-4 0 0" dur="4.6s" repeatCount="indefinite"/>
+          </g>
+        </g>
+      </svg>
+
+      <div class="hero-scrim"></div>
+
+      <div class="hero-content">
+        <p class="chalk-eyebrow" id="date-text"></p>
+        <h1 class="chalk-title">С Днём<br>Учителя!</h1>
+        <p class="chalk-sub">Всем, кто учит, вдохновляет и верит в нас</p>
+        <p class="chalk-line">Этот день — для каждого учителя, который когда-либо менял чью-то жизнь к лучшему</p>
+
+        <button class="sound-btn" id="sound-toggle" type="button">
+          <svg viewBox="0 0 24 24"><path d="M4 9v6h4l6 5V4L8 9H4Z"/></svg>
+          <span id="sound-label">включить мелодию</span>
+        </button>
+      </div>
+
+      <div class="scroll-cue">↓ листайте вниз</div>
+    </section>
+
+    <section class="stage stage-subjects board-texture">
+      <p class="subjects-heading">Спасибо за каждый урок</p>
+      <div class="subjects-grid" id="subjects-grid"></div>
+    </section>
+
+    <section class="stage stage-letter">
+      <div class="paper-card">
+        <span class="sprigs">
+          <svg viewBox="0 0 44 26"><path d="M2 24 Q10 6 40 2"/><path d="M10 18 Q14 12 20 12"/><path d="M16 12 Q19 8 24 8"/><path d="M22 7 Q25 4 29 4"/></svg>
+          <svg class="right" viewBox="0 0 44 26"><path d="M2 24 Q10 6 40 2"/><path d="M10 18 Q14 12 20 12"/><path d="M16 12 Q19 8 24 8"/><path d="M22 7 Q25 4 29 4"/></svg>
+        </span>
+        <h2>Дорогие Учителя!</h2>
+        <div id="letter-body"></div>
+        <p class="signature" id="signature"></p>
+      </div>
+    </section>
+
+    <section class="stage stage-footer board-texture">
+      <p class="footer-line">Спасибо, что вы есть 🍎</p>
+      <p class="footer-credit">сделано с теплом ко Дню учителя</p>
+    </section>
+
+  </main>
+
+<script>
+  /* ⚙️ CONFIG — меняйте только здесь */
+  const CONFIG = {
+    dateText: "5 октября",
+    subjects: [
+      "Математика","Литература","Физика","История",
+      "Музыка","Физкультура","Химия","Иностранный язык",
+      "Биология","Информатика","География","Рисование"
+    ],
+    letterParagraphs: [
+      "Сегодня особенный день — праздник тех, кто щедро делится знаниями, терпением и добротой. Спасибо, что вкладываете в нас частичку себя, верите в каждого и умеете вдохновлять даже в самый обычный вторник.",
+      "Пусть в вашей жизни будет много благодарных учеников, светлых моментов и тепла — точно так, как вы дарите его нам каждый день."
+    ],
+    signature: "С любовью и благодарностью,\nваши ученики"
+  };
+
+  document.getElementById('date-text').textContent = CONFIG.dateText;
+  document.getElementById('signature').innerHTML = CONFIG.signature.replace('\n','<br>');
+  document.getElementById('letter-body').innerHTML =
+    CONFIG.letterParagraphs.map(p => `<p>${p}</p>`).join('');
+
+  const grid = document.getElementById('subjects-grid');
+  CONFIG.subjects.forEach((subject, i) => {
+    const tag = document.createElement('span');
+    tag.className = 'subject-tag';
+    tag.textContent = subject;
+    tag.style.animationDelay = (i * 0.08) + 's';
+    grid.appendChild(tag);
+  });
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if(!reduceMotion){
+    const dustLayer = document.getElementById('dust-layer');
+    for(let i=0;i<28;i++){
+      const m = document.createElement('div');
+      m.className = 'mote';
+      const size = 2 + Math.random()*2.5;
+      m.style.width = size + 'px';
+      m.style.height = size + 'px';
+      m.style.left = Math.random()*100 + 'vw';
+      m.style.animationDuration = (10 + Math.random()*10) + 's';
+      m.style.animationDelay = (Math.random()*10) + 's';
+      dustLayer.appendChild(m);
+    }
+  } else {
+    const heroSvg = document.getElementById('hero-svg');
+    if(heroSvg.pauseAnimations) heroSvg.pauseAnimations();
+  }
+
+  /* Конверт */
+  const envelope = document.getElementById('envelope');
+  const stageEnvelope = document.getElementById('stage-envelope');
+
+  function openEnvelope(){
+    if(envelope.classList.contains('opened')) return;
+    envelope.classList.add('opened');
+    setTimeout(() => {
+      stageEnvelope.classList.add('opened');
+      document.body.classList.remove('locked');
+      document.body.classList.add('unlocked');
+      setTimeout(() => { stageEnvelope.style.display = 'none'; }, 750);
+    }, 650);
+  }
+  envelope.addEventListener('click', openEnvelope);
+  envelope.addEventListener('keydown', e => {
+    if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); openEnvelope(); }
+  });
+  envelope.setAttribute('tabindex','0');
+  envelope.setAttribute('role','button');
+  envelope.setAttribute('aria-label','Открыть конверт');
+
+  /* ============================================================
+     МУЗЫКА — оригинальная эмбиент-композиция на Web Audio API.
+     Два слоя: тёплые фоновые аккорды (pad) + редкие "колокольчики"
+     мелодии поверх, с лёгким эхо. Полностью синтезируется на
+     лету, никаких сэмплов и чужих мелодий.
+  ============================================================= */
+  let audioCtx = null, masterGain = null, delayNode = null, feedbackGain = null;
+  let playing = false;
+  let chordTimerId = null, melodyTimerId = null;
+
+  // Мягкие аккорды, сменяющие друг друга (Am9 → Fmaj7 → Cmaj7 → Em7)
+  const chords = [
+    [220.00, 261.63, 329.63, 392.00],   // A3 C4 E4 G4
+    [174.61, 220.00, 261.63, 349.23],   // F3 A3 C4 F4
+    [130.81, 196.00, 246.94, 329.63],   // C3 G3 B3 E4
+    [164.81, 246.94, 293.66, 392.00]    // E3 B3 D4 G4
+  ];
+  let chordIndex = 0;
+
+  // Пентатоника для редких "колокольчиков" сверху
+  const bellNotes = [523.25, 587.33, 659.25, 783.99, 880.00, 987.77, 1046.50];
+
+  function initAudio(){
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    masterGain = audioCtx.createGain();
+    masterGain.gain.value = 0.5;
+    delayNode = audioCtx.createDelay();
+    delayNode.delayTime.value = 0.42;
+    feedbackGain = audioCtx.createGain();
+    feedbackGain.gain.value = 0.27;
+    delayNode.connect(feedbackGain);
+    feedbackGain.connect(delayNode);
+    masterGain.connect(audioCtx.destination);
+    masterGain.connect(delayNode);
+    delayNode.connect(audioCtx.destination);
+  }
+
+  function playTone(freq, dur, vol, type){
+    const t = audioCtx.currentTime;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(vol, t + Math.min(0.6, dur * 0.15));
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    osc.connect(gain).connect(masterGain);
+    osc.start(t);
+    osc.stop(t + dur + 0.1);
+  }
+
+  function playChord(){
+    const chord = chords[chordIndex % chords.length];
+    chordIndex++;
+    chord.forEach(f => playTone(f, 7.6, 0.05, 'triangle'));
+    chordTimerId = setTimeout(playChord, 8000);
+  }
+
+  function playBellLoop(){
+    if(Math.random() < 0.7){
+      const note = bellNotes[Math.floor(Math.random() * bellNotes.length)];
+      playTone(note, 1.8, 0.09, 'sine');
+    }
+    const nextDelay = 1100 + Math.random() * 1400;
+    melodyTimerId = setTimeout(playBellLoop, nextDelay);
+  }
+
+  const soundBtn = document.getElementById('sound-toggle');
+  const soundLabel = document.getElementById('sound-label');
+  soundBtn.addEventListener('click', () => {
+    if(!audioCtx){ initAudio(); }
+    if(!playing){
+      audioCtx.resume();
+      playing = true;
+      soundLabel.textContent = 'выключить мелодию';
+      chordIndex = 0;
+      playChord();
+      playBellLoop();
+    } else {
+      playing = false;
+      soundLabel.textContent = 'включить мелодию';
+      clearTimeout(chordTimerId);
+      clearTimeout(melodyTimerId);
+      masterGain.gain.linearRampToValueAtTime(0.0001, audioCtx.currentTime + 0.6);
+      setTimeout(() => { if(!playing) masterGain.gain.value = 0.5; }, 700);
+    }
+  });
+</script>
+</body>
+</html>
