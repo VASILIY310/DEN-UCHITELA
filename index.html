@@ -5,266 +5,480 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>С Днём Учителя!</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --board:#24392F;
-    --board-deep:#182922;
-    --wood:#7A5232;
-    --wood-dark:#5C3C22;
-    --cream:#F6EFDD;
-    --cream-soft:#FBF7EC;
-    --gold:#D9AC4F;
-    --rust:#C1642F;
-    --chalk:#F4F1E6;
-    --chalk-dim:rgba(244,241,230,0.55);
+    --paper:#FDF6EA;
+    --ink:#4A3B2A;
+    --ink-soft:#8A7458;
+    --coral:#E4573D;
+    --coral-deep:#C13F27;
+    --marigold:#F2A93B;
+    --teal:#2E9E8F;
+    --plum:#7C5CA8;
+    --pink:#F2789F;
+    --gold:#E9B84C;
+    --cream:#FFFDF7;
   }
 
   *{box-sizing:border-box;}
-  html,body{margin:0;padding:0;height:100%;}
+  html{scroll-behavior:smooth;}
+  html,body{margin:0;padding:0;}
   body{
     font-family:'Nunito',sans-serif;
-    background:var(--board);
-    color:var(--chalk);
+    background:var(--paper);
+    color:var(--ink);
     overflow:hidden;
   }
   body.unlocked{overflow:auto;}
-  h1,h2{margin:0;font-weight:700;}
+  h1,h2{margin:0;font-weight:800;}
   p{margin:0;}
   button{font-family:inherit;}
-  ::selection{background:var(--gold);color:var(--board-deep);}
+  ::selection{background:var(--coral);color:#fff;}
 
-  .board-texture{
-    background-image:
-      radial-gradient(rgba(244,241,230,0.05) 1px, transparent 1px),
-      radial-gradient(rgba(244,241,230,0.04) 1px, transparent 1px);
-    background-size:26px 26px, 34px 34px;
-    background-position:0 0, 13px 17px;
+  /* мягкие цветные пятна на фоне всей страницы */
+  body::before{
+    content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:
+      radial-gradient(620px 420px at 10% 6%, rgba(242,169,59,.16), transparent 62%),
+      radial-gradient(700px 520px at 90% 18%, rgba(242,120,159,.14), transparent 62%),
+      radial-gradient(700px 500px at 14% 92%, rgba(46,158,143,.12), transparent 62%),
+      radial-gradient(620px 420px at 88% 88%, rgba(124,92,168,.12), transparent 62%);
   }
-  .wood-edge{position:relative;}
-  .wood-edge::before,.wood-edge::after{
-    content:"";position:absolute;left:0;right:0;height:10px;
-    background:linear-gradient(180deg,var(--wood),var(--wood-dark));z-index:6;
-  }
-  .wood-edge::before{top:0;box-shadow:0 2px 6px rgba(0,0,0,0.35) inset;}
-  .wood-edge::after{bottom:0;box-shadow:0 -2px 6px rgba(0,0,0,0.35) inset;}
 
+  #content{position:relative;z-index:2;}
+  .stage{min-height:100vh;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;padding:64px 24px;}
+
+  .reveal{opacity:0;transform:translateY(26px);transition:opacity .7s ease, transform .7s ease;}
+  .reveal.visible{opacity:1;transform:translateY(0);}
+
+  /* гирлянда с флажками */
+  .bunting{
+    position:absolute;top:0;left:0;right:0;margin:auto;width:min(92vw,620px);height:auto;
+    z-index:3;transform-origin:top center;animation:sway 5.5s ease-in-out infinite;pointer-events:none;
+  }
+  @keyframes sway{0%,100%{transform:rotate(-1.1deg);}50%{transform:rotate(1.1deg);}}
+
+  /* падающие конфетти */
   #dust-layer{position:fixed;inset:0;pointer-events:none;z-index:5;overflow:hidden;}
-  .mote{position:absolute;bottom:-10px;border-radius:50%;background:var(--chalk-dim);animation:rise linear infinite;}
-  @keyframes rise{
-    0%{transform:translateY(0) translateX(0);opacity:0;}
-    10%{opacity:.6;}90%{opacity:.25;}
-    100%{transform:translateY(-110vh) translateX(24px);opacity:0;}
+  .mote{position:absolute;top:-18px;border-radius:2px;opacity:.75;animation:confetti-fall linear infinite;}
+  @keyframes confetti-fall{
+    0%{transform:translate(0,0) rotate(0);}
+    100%{transform:translate(var(--sway,30px),112vh) rotate(680deg);}
   }
 
-  /* ===================== СТАДИЯ 1 — КОНВЕРТ ===================== */
+  /* слой для залпа конфетти при открытии */
+  #burst-layer{position:fixed;inset:0;pointer-events:none;z-index:70;}
+  .confetti-piece{position:fixed;left:0;top:0;pointer-events:none;animation:burst cubic-bezier(.2,.7,.3,1) forwards;}
+  @keyframes burst{
+    0%{transform:translate(-50%,-50%) rotate(0deg) scale(1);opacity:1;}
+    100%{transform:translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--rot,180deg)) scale(.65);opacity:0;}
+  }
+
+  /* ===================== СТАДИЯ 1 — КОНВЕРТ-ПОДАРОК ===================== */
   #stage-envelope{
     position:fixed;inset:0;z-index:50;
-    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px;
-    background:radial-gradient(ellipse at 50% 30%, #2c4638 0%, var(--board) 60%, var(--board-deep) 100%);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;
+    background:radial-gradient(ellipse at 50% 28%, #FFFDF6 0%, #FBEED6 55%, #F5E0C1 100%);
     transition:opacity .7s ease;padding:24px;text-align:center;
   }
   #stage-envelope.opened{opacity:0;pointer-events:none;}
-  .envelope-hint{font-family:'Caveat',cursive;font-size:clamp(22px,5vw,30px);color:var(--chalk);max-width:320px;line-height:1.3;}
-  .envelope{position:relative;width:min(78vw,280px);height:calc(min(78vw,280px) * 0.62);cursor:pointer;perspective:900px;}
-  .env-body{position:absolute;inset:0;background:var(--cream);border-radius:8px;box-shadow:0 18px 40px rgba(0,0,0,0.45);}
-  .env-body::before,.env-body::after{content:"";position:absolute;bottom:0;width:52%;height:78%;border-bottom:2px solid rgba(0,0,0,0.08);}
-  .env-body::before{left:0;border-right:2px solid rgba(0,0,0,0.08);clip-path:polygon(0 0,100% 100%,0 100%);}
-  .env-body::after{right:0;border-left:2px solid rgba(0,0,0,0.08);clip-path:polygon(100% 0,100% 100%,0 100%);}
-  .env-letter-peek{
-    position:absolute;left:8%;right:8%;top:-6%;height:70%;background:var(--cream-soft);
-    border-radius:6px 6px 0 0;box-shadow:0 -2px 10px rgba(0,0,0,0.12);z-index:1;
-    transition:transform .9s cubic-bezier(.22,.9,.3,1), opacity .6s ease .2s;
+
+  .envelope-hint{font-family:'Caveat',cursive;font-size:clamp(30px,6.5vw,42px);color:var(--ink);line-height:1.15;}
+  .envelope-hint em{font-style:normal;color:var(--coral);}
+  .envelope-sub{font-size:14px;color:var(--ink-soft);max-width:340px;line-height:1.5;}
+
+  .env-wrap{position:relative;margin-top:6px;}
+  .envelope{position:relative;width:min(78vw,300px);height:calc(min(78vw,300px) * 0.62);cursor:pointer;perspective:900px;transition:transform .3s ease;}
+  .envelope:hover{transform:translateY(-6px) scale(1.02);}
+  .envelope:focus-visible{outline:2px solid var(--coral);outline-offset:8px;border-radius:10px;}
+
+  .env-body{
+    position:absolute;inset:0;background:var(--cream);border-radius:10px;
+    border:1px solid rgba(74,59,42,.08);
+    box-shadow:0 24px 50px rgba(122,82,50,.24), 0 4px 10px rgba(122,82,50,.12);
   }
-  .envelope.opened .env-letter-peek{transform:translateY(-165%) scale(1.04);opacity:0;}
+  .env-body::before,.env-body::after{content:"";position:absolute;bottom:0;width:52%;height:78%;border-bottom:2px solid rgba(122,82,50,.10);}
+  .env-body::before{left:0;border-right:2px solid rgba(122,82,50,.10);clip-path:polygon(0 0,100% 100%,0 100%);}
+  .env-body::after{right:0;border-left:2px solid rgba(122,82,50,.10);clip-path:polygon(100% 0,100% 100%,0 100%);}
+
+  .env-letter-peek{
+    position:absolute;left:8%;right:8%;top:-6%;height:70%;background:#FFFDF9;
+    border:1px solid rgba(122,82,50,.10);border-bottom:none;border-radius:8px 8px 0 0;
+    box-shadow:0 -2px 10px rgba(122,82,50,.12);z-index:1;
+    transition:transform .9s cubic-bezier(.22,.9,.3,1), opacity .6s ease;
+  }
+  .env-letter-peek::before{content:"♥";position:absolute;top:8px;left:12px;font-size:13px;color:var(--coral);}
+  .env-letter-peek::after{
+    content:"";position:absolute;left:12%;right:12%;top:26%;height:3px;background:rgba(122,82,50,.2);border-radius:2px;
+    box-shadow:0 12px 0 rgba(122,82,50,.15), 0 24px 0 rgba(122,82,50,.1);
+  }
+  .envelope.opened .env-letter-peek{transform:translateY(-165%) scale(1.04);opacity:0;transition-delay:.9s;}
+
   .env-flap{
-    position:absolute;top:0;left:0;right:0;height:58%;background:linear-gradient(155deg,#EFE6CF,var(--cream));
+    position:absolute;top:0;left:0;right:0;height:58%;
+    background:linear-gradient(155deg,#FBF3E2,#F4E8CF);
+    border-radius:10px 10px 0 0;
     clip-path:polygon(0 0,100% 0,50% 100%);transform-origin:top center;transform:rotateX(0deg);
-    transition:transform .8s cubic-bezier(.6,.05,.3,1);z-index:3;box-shadow:0 2px 6px rgba(0,0,0,0.15);
+    transition:transform .8s cubic-bezier(.6,.05,.3,1) .55s;z-index:3;box-shadow:0 2px 6px rgba(122,82,50,.15);
   }
   .envelope.opened .env-flap{transform:rotateX(178deg);z-index:0;}
-  .env-seal{
-    position:absolute;left:50%;top:40%;width:52px;height:52px;transform:translate(-50%,-50%);border-radius:50%;
-    background:radial-gradient(circle at 35% 30%, var(--rust), #8f4620 75%);
-    display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(0,0,0,0.35);z-index:4;
-    transition:transform .5s ease, opacity .5s ease;
+  .envelope:hover:not(.opened) .env-flap{transform:rotateX(12deg);}
+
+  /* ---- ЛЕНТА И БАНТ ---- */
+  .vr,.hr{position:absolute;z-index:4;}
+  .vr-top{top:-2px;left:50%;width:30px;height:calc(50% + 2px);transform:translate(-50%,0);transform-origin:top center;
+    background:linear-gradient(90deg,var(--coral-deep),#F07B62 45%,var(--coral-deep));border-radius:2px 2px 0 0;}
+  .vr-bottom{top:50%;left:50%;width:30px;height:calc(50% + 2px);transform:translate(-50%,0);transform-origin:bottom center;
+    background:linear-gradient(90deg,var(--coral-deep),#F07B62 45%,var(--coral-deep));border-radius:0 0 2px 2px;}
+  .hr-left{left:-2px;top:50%;width:calc(50% + 2px);height:30px;transform:translate(0,-50%);transform-origin:left center;
+    background:linear-gradient(180deg,var(--coral-deep),#F07B62 45%,var(--coral-deep));border-radius:2px 0 0 2px;}
+  .hr-right{right:-2px;top:50%;width:calc(50% + 2px);height:30px;transform:translate(0,-50%);transform-origin:right center;
+    background:linear-gradient(180deg,var(--coral-deep),#F07B62 45%,var(--coral-deep));border-radius:0 2px 2px 0;}
+  .vr,.hr{transition:transform .75s cubic-bezier(.45,-.25,.35,1) .1s, opacity .45s ease .4s;}
+  .envelope.opened .vr-top{transform:translate(-50%,-130%) rotate(-7deg);opacity:0;}
+  .envelope.opened .vr-bottom{transform:translate(-50%,130%) rotate(6deg);opacity:0;}
+  .envelope.opened .hr-left{transform:translate(-140%,-50%) rotate(-5deg);opacity:0;}
+  .envelope.opened .hr-right{transform:translate(140%,-50%) rotate(7deg);opacity:0;}
+
+  .bow{
+    position:absolute;left:50%;top:50%;width:64px;height:auto;transform:translate(-50%,-58%);z-index:5;
+    filter:drop-shadow(0 3px 6px rgba(122,82,50,.3));
+    transition:transform .8s cubic-bezier(.34,1.3,.5,1) .12s, opacity .5s ease .4s;
   }
-  .envelope.opened .env-seal{transform:translate(-50%,-50%) scale(0.4) rotate(25deg);opacity:0;}
-  .env-seal svg{width:26px;height:26px;stroke:var(--cream-soft);fill:none;stroke-width:4.5;}
-  .tap-cue{font-size:13px;letter-spacing:.06em;color:var(--chalk-dim);animation:pulse 2.2s ease-in-out infinite;}
+  .envelope.opened .bow{transform:translate(-50%,-175%) rotate(-16deg) scale(1.2);opacity:0;}
+
+  .env-tag{
+    position:absolute;top:calc(50% + 24px);right:12%;z-index:5;
+    background:var(--cream);border:1.5px solid var(--coral);color:var(--coral);
+    font-weight:800;font-size:12px;padding:5px 11px;border-radius:8px;transform:rotate(8deg);
+    box-shadow:0 3px 8px rgba(122,82,50,.2);
+    animation:tag-sway 3s ease-in-out infinite;
+    transition:opacity .4s ease .2s;
+  }
+  .env-tag::before{content:"";position:absolute;top:-13px;left:9px;width:2px;height:13px;background:#B98A5A;transform:rotate(-12deg);}
+  .env-tag::after{content:"";position:absolute;top:-16px;left:7px;width:6px;height:6px;border-radius:50%;background:#8A6A42;}
+  @keyframes tag-sway{0%,100%{transform:rotate(6deg);}50%{transform:rotate(10deg);}}
+  .envelope.opened + .env-tag{opacity:0;}
+
+  /* искры вокруг конверта */
+  .spark{position:absolute;font-size:20px;color:var(--marigold);animation:twinkle 1.9s ease-in-out infinite;pointer-events:none;}
+  .sp1{top:-14%;left:-14%;color:var(--pink);}
+  .sp2{top:-8%;right:-12%;color:var(--teal);animation-delay:.4s;font-size:15px;}
+  .sp3{bottom:-6%;left:-16%;color:var(--plum);animation-delay:.9s;font-size:16px;}
+  .sp4{bottom:-12%;right:-10%;color:var(--marigold);animation-delay:1.3s;}
+  .sp5{top:-20%;left:38%;color:var(--coral);animation-delay:.6s;font-size:14px;}
+  @keyframes twinkle{0%,100%{opacity:.25;transform:scale(.7) rotate(0);}50%{opacity:1;transform:scale(1.15) rotate(18deg);}}
+
+  .tap-cue{font-size:13px;letter-spacing:.05em;color:var(--ink-soft);animation:pulse 2.2s ease-in-out infinite;font-weight:600;}
   @keyframes pulse{0%,100%{opacity:.5;}50%{opacity:1;}}
 
-  /* ===================== ОБЩЕЕ ===================== */
-  #content{position:relative;z-index:2;scroll-snap-type:y proximity;}
-  .stage{min-height:100vh;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;scroll-snap-align:start;padding:56px 24px;position:relative;overflow:hidden;}
-
-  /* ===================== СТАДИЯ 2 — ГЕРОЙ: ИЛЛЮСТРАЦИЯ ОКНА ===================== */
-  .stage-hero{background:var(--board-deep);gap:14px;text-align:center;}
+  /* ===================== СТАДИЯ 2 — ГЕРОЙ ===================== */
+  .stage-hero{background:#FCF3E0;gap:12px;text-align:center;}
   .hero-scene{position:absolute;inset:0;width:100%;height:100%;z-index:0;}
-  .hero-scrim{
-    position:absolute;inset:0;z-index:1;
-    background:linear-gradient(180deg, rgba(15,26,20,0.72) 0%, rgba(15,26,20,0.28) 32%, rgba(15,26,20,0.42) 68%, rgba(15,26,20,0.82) 100%);
+  .hero-content{
+    position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:13px;
+    padding:30px 40px;border-radius:26px;
+    background:radial-gradient(closest-side, rgba(255,253,247,.6), transparent 78%);
   }
-  .hero-content{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:14px;}
-
-  .chalk-eyebrow{font-size:13px;letter-spacing:.1em;color:var(--chalk-dim);opacity:0;animation:fade-up .6s ease forwards;animation-delay:.05s;}
-  .chalk-title{
-    font-family:'Caveat',cursive;font-size:clamp(48px,11.5vw,92px);line-height:1.03;color:var(--chalk);
-    text-shadow:0 2px 20px rgba(0,0,0,0.35);clip-path:inset(0 100% 0 0);
-    animation:chalk-reveal 1.1s ease forwards;animation-delay:.25s;
+  .date-pill{
+    display:inline-block;background:var(--coral);color:#fff;font-weight:800;font-size:13px;
+    letter-spacing:.09em;padding:7px 18px;border-radius:999px;
+    box-shadow:0 6px 16px rgba(228,87,61,.35);
+    opacity:0;animation:fade-up .6s ease forwards .1s;
   }
-  @keyframes chalk-reveal{to{clip-path:inset(0 0 0 0);}}
-  .chalk-sub{font-family:'Caveat',cursive;font-size:clamp(20px,4.5vw,26px);color:var(--gold);letter-spacing:.04em;opacity:0;animation:fade-up .7s ease forwards;animation-delay:1.3s;}
-  .chalk-line{font-size:15px;color:var(--chalk-dim);line-height:1.6;margin-top:2px;max-width:320px;opacity:0;animation:fade-up .7s ease forwards;animation-delay:1.55s;}
+  .hero-title{
+    font-family:'Caveat',cursive;font-weight:700;font-size:clamp(50px,11.5vw,96px);line-height:1.0;color:var(--ink);
+    text-shadow:0 2px 0 rgba(255,255,255,.6);
+    opacity:0;animation:fade-up .8s ease forwards .3s;
+  }
+  .hero-title span{color:var(--coral);}
+  .hero-sub{font-family:'Caveat',cursive;font-size:clamp(22px,4.8vw,28px);color:var(--plum);opacity:0;animation:fade-up .7s ease forwards 1.1s;}
+  .hero-line{font-size:15px;color:var(--ink-soft);line-height:1.6;max-width:330px;opacity:0;animation:fade-up .7s ease forwards 1.35s;}
   @keyframes fade-up{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
 
   .sound-btn{
-    margin-top:20px;display:flex;align-items:center;gap:9px;background:rgba(0,0,0,0.15);
-    border:1px solid rgba(244,241,230,0.35);color:var(--chalk);padding:10px 18px;border-radius:999px;
-    cursor:pointer;font-size:13px;letter-spacing:.02em;opacity:0;
-    animation:fade-up .7s ease forwards;animation-delay:1.8s;
-    transition:border-color .25s ease, background .25s ease;
+    margin-top:14px;display:flex;align-items:center;gap:9px;background:rgba(255,255,255,.85);
+    border:1.5px solid rgba(74,59,42,.22);color:var(--ink);padding:10px 18px;border-radius:999px;
+    cursor:pointer;font-size:13px;font-weight:700;letter-spacing:.02em;opacity:0;
+    animation:fade-up .7s ease forwards 1.6s;
+    transition:border-color .25s ease, color .25s ease, background .25s ease, transform .2s ease;
     backdrop-filter:blur(3px);
   }
-  .sound-btn:hover,.sound-btn:focus-visible{border-color:var(--gold);background:rgba(217,172,79,0.15);}
+  .sound-btn:hover{border-color:var(--coral);color:var(--coral);background:#FFF3E8;transform:translateY(-2px);}
+  .sound-btn:focus-visible{outline:2px solid var(--coral);outline-offset:2px;}
   .sound-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;}
-  .scroll-cue{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);font-size:12px;color:var(--chalk-dim);animation:bob 2s ease-in-out infinite;z-index:2;}
+  .scroll-cue{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);font-size:12px;color:var(--ink-soft);animation:bob 2s ease-in-out infinite;z-index:2;font-weight:600;}
   @keyframes bob{0%,100%{transform:translate(-50%,0);}50%{transform:translate(-50%,6px);}}
 
-  /* ===================== СТАДИЯ 3 — МОЗАИКА ===================== */
-  .stage-subjects{background:var(--board-deep);gap:30px;}
-  .subjects-heading{font-family:'Caveat',cursive;font-size:clamp(28px,6vw,38px);color:var(--chalk);text-align:center;}
-  .subjects-grid{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;max-width:560px;}
-  .subject-tag{
-    font-size:14px;color:var(--chalk);border:1px solid rgba(217,172,79,0.4);background:rgba(217,172,79,0.06);
-    padding:9px 16px 9px 14px;border-radius:999px;opacity:0;transform:translateY(8px) scale(.96);animation:tag-in .5s ease forwards;
+  /* ===================== СТАДИЯ 3 — ПРЕДМЕТЫ ===================== */
+  .stage-subjects{background:#FFF6E6;gap:30px;
+    background-image:radial-gradient(rgba(122,82,50,.06) 1px, transparent 1px);background-size:24px 24px;}
+  .subjects-heading{font-family:'Caveat',cursive;font-weight:700;font-size:clamp(30px,6vw,42px);color:var(--ink);text-align:center;}
+  .subjects-sub{font-size:14px;color:var(--ink-soft);text-align:center;max-width:400px;line-height:1.6;}
+  .subjects-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;max-width:620px;width:100%;}
+  @media (max-width:540px){.subjects-grid{grid-template-columns:repeat(2,1fr);}}
+  .subject-card{
+    background:#FFE8D6;border:1.5px solid rgba(74,59,42,.07);border-radius:18px;
+    padding:18px 10px 14px;text-align:center;cursor:default;--acc:var(--coral);
+    transition:transform .3s ease, box-shadow .3s ease, border-color .3s ease;
   }
-  .subject-tag::before{content:"✦";color:var(--gold);margin-right:7px;font-size:11px;}
-  @keyframes tag-in{to{opacity:1;transform:translateY(0) scale(1);}}
+  .subject-card:nth-child(6n+1){background:#FFE8D6;--acc:#D95436;}
+  .subject-card:nth-child(6n+2){background:#FFF3C4;--acc:#C98A1F;}
+  .subject-card:nth-child(6n+3){background:#DFF3E4;--acc:#2E8B6A;}
+  .subject-card:nth-child(6n+4){background:#E7E0F7;--acc:#7C5CA8;}
+  .subject-card:nth-child(6n+5){background:#FDE2EC;--acc:#D65C8F;}
+  .subject-card:nth-child(6n+6){background:#D9EEF8;--acc:#2E7FA8;}
+  .subject-card:hover{transform:translateY(-5px) rotate(-1deg);box-shadow:0 16px 30px rgba(74,59,42,.14);border-color:var(--acc);}
+  .subject-card .icn{width:34px;height:34px;margin:0 auto 9px;display:block;stroke:var(--acc);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;}
+  .subject-card .nm{font-size:14px;color:var(--ink);font-weight:800;}
+  .subject-card .qt{display:block;font-size:11px;color:var(--ink-soft);margin-top:5px;line-height:1.45;}
 
   /* ===================== СТАДИЯ 4 — ПИСЬМО ===================== */
-  .stage-letter{background:var(--cream);color:#2b2620;}
-  .stage-letter::before{
-    content:"";position:absolute;inset:0;opacity:.05;mix-blend-mode:multiply;pointer-events:none;
-    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  .stage-letter{background:#FBEBD3;
+    background-image:radial-gradient(rgba(122,82,50,.05) 1.2px, transparent 1.2px);background-size:22px 22px;}
+  .paper-card{
+    max-width:540px;text-align:center;position:relative;z-index:1;padding:40px 30px 34px;
+    background:var(--cream);border-radius:14px;
+    box-shadow:0 24px 50px rgba(122,82,50,.18), 0 4px 12px rgba(122,82,50,.1);
   }
-  .paper-card{max-width:540px;text-align:center;position:relative;z-index:1;}
+  .paper-card::before{ /* васи-тейп сверху */
+    content:"";position:absolute;top:-15px;left:50%;transform:translateX(-50%) rotate(-2.5deg);
+    width:130px;height:30px;background:rgba(228,87,61,.32);border-radius:3px;
+    box-shadow:0 2px 5px rgba(122,82,50,.12);
+  }
   .sprigs{display:flex;align-items:center;justify-content:center;gap:14px;margin-bottom:2px;}
-  .sprigs svg{width:44px;height:26px;stroke:var(--gold);fill:none;stroke-width:2;stroke-linecap:round;}
+  .sprigs svg{width:44px;height:26px;stroke:var(--marigold);fill:none;stroke-width:2;stroke-linecap:round;}
   .sprigs svg.right{transform:scaleX(-1);}
-  .paper-card h2{font-family:'Caveat',cursive;font-size:clamp(36px,7.5vw,52px);color:var(--rust);margin-bottom:22px;}
-  .paper-card p{font-size:16px;line-height:1.75;color:#403a30;margin-bottom:16px;}
-  .signature{margin-top:22px;font-family:'Caveat',cursive;font-size:24px;color:var(--rust);}
+  .paper-card h2{font-family:'Caveat',cursive;font-weight:700;font-size:clamp(36px,7.5vw,52px);color:var(--coral);margin-bottom:20px;}
+  .paper-card p{font-size:16px;line-height:1.75;color:#5A4A38;margin-bottom:16px;}
+  .signature{margin-top:20px;font-family:'Caveat',cursive;font-size:25px;color:var(--coral);white-space:pre-line;}
 
-  /* ===================== СТАДИЯ 5 — ФУТЕР ===================== */
-  .stage-footer{background:var(--board-deep);min-height:44vh;gap:10px;}
-  .footer-line{font-family:'Caveat',cursive;font-size:28px;color:var(--gold);}
-  .footer-credit{font-size:11px;color:var(--chalk-dim);letter-spacing:.05em;}
+  /* ===================== СТАДИЯ 5 — СТИКЕРЫ ===================== */
+  .stage-notes{background:#FDF2DE;gap:32px;
+    background-image:radial-gradient(rgba(122,82,50,.05) 1px, transparent 1px);background-size:24px 24px;}
+  .notes-heading{font-family:'Caveat',cursive;font-weight:700;font-size:clamp(28px,5.5vw,38px);color:var(--ink);text-align:center;}
+  .notes-board{
+    display:flex;flex-wrap:wrap;justify-content:center;gap:18px;max-width:660px;
+    padding:30px 24px;border-radius:12px;
+    background:#E9CFA4;
+    border:8px solid #C98A4B;
+    box-shadow:inset 0 0 34px rgba(122,82,50,.28), 0 14px 30px rgba(74,59,42,.16);
+  }
+  .note{
+    width:134px;min-height:118px;padding:18px 12px 12px;border-radius:3px;position:relative;
+    display:flex;align-items:center;justify-content:center;text-align:center;
+    font-family:'Caveat',cursive;font-weight:600;font-size:19px;line-height:1.25;color:#4A3B2A;
+    box-shadow:0 8px 16px rgba(74,59,42,.22);
+    transition:transform .3s ease;
+  }
+  .note::before{
+    content:"";position:absolute;top:-9px;left:50%;transform:translateX(-50%) rotate(-2deg);
+    width:54px;height:16px;background:rgba(255,255,255,.55);box-shadow:0 1px 3px rgba(74,59,42,.2);
+  }
+  .note:nth-child(5n+1){background:#FFE066;transform:rotate(-3deg);}
+  .note:nth-child(5n+2){background:#FFB3C1;transform:rotate(2.5deg);}
+  .note:nth-child(5n+3){background:#B5EAD7;transform:rotate(-1.5deg);}
+  .note:nth-child(5n+4){background:#A0D8EF;transform:rotate(3deg);}
+  .note:nth-child(5n){background:#D9C7F0;transform:rotate(-2deg);}
+  .note:hover{transform:rotate(0deg) scale(1.08) translateY(-4px);z-index:2;}
+  .note .pin{position:absolute;top:6px;left:50%;transform:translateX(-50%);width:12px;height:12px;border-radius:50%;background:radial-gradient(circle at 35% 30%, #FF8A70, #C13F27);box-shadow:0 2px 4px rgba(74,59,42,.35);}
 
-  .sound-btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
+  /* ===================== СТАДИЯ 6 — ФУТЕР ===================== */
+  .stage-footer{background:linear-gradient(180deg,#FFF0DA,#FFE1C4);min-height:52vh;gap:12px;text-align:center;
+    background-image:radial-gradient(rgba(228,87,61,.07) 1.4px, transparent 1.4px);background-size:26px 26px;}
+  .footer-emoji{font-size:50px;filter:drop-shadow(0 8px 16px rgba(228,87,61,.3));}
+  .footer-line{font-family:'Caveat',cursive;font-weight:700;font-size:clamp(28px,6vw,40px);color:var(--ink);}
+  .footer-line em{font-style:normal;color:var(--coral);}
+  .footer-credit{font-size:12px;color:var(--ink-soft);letter-spacing:.05em;font-weight:600;}
+
   @media (prefers-reduced-motion: reduce){
-    .chalk-title,.chalk-sub,.chalk-line,.sound-btn,.tap-cue,.scroll-cue,.mote,.subject-tag,.chalk-eyebrow{
-      animation:none !important;opacity:1 !important;clip-path:none !important;transform:none !important;
+    .hero-title,.hero-sub,.hero-line,.sound-btn,.tap-cue,.scroll-cue,.mote,.date-pill,
+    .bunting,.spark,.env-tag,.confetti-piece{
+      animation:none !important;opacity:1 !important;transform:none !important;
     }
+    .reveal{opacity:1;transform:none;transition:none;}
+    .hero-title,.hero-sub,.hero-line,.sound-btn,.date-pill{transform:none;}
   }
 </style>
 </head>
 <body class="locked">
 
   <!-- ============================================================
-       ✏️ РЕДАКТИРУЙТЕ ЗДЕСЬ: дата, текст письма и список предметов
-       находятся в объекте CONFIG внизу файла, в <script>.
+       ✏️ РЕДАКТИРУЙТЕ ЗДЕСЬ: дата, текст письма, список предметов,
+       цитаты-стикеры и подпись — в объекте CONFIG внизу файла.
   ============================================================= -->
 
+  <div id="burst-layer"></div>
   <div id="dust-layer"></div>
 
+  <!-- КОНВЕРТ-ПОДАРОК -->
   <section id="stage-envelope">
-    <p class="envelope-hint">Тёплое послание для всех учителей</p>
-    <div class="envelope" id="envelope">
-      <div class="env-body"></div>
-      <div class="env-letter-peek"></div>
-      <div class="env-flap"></div>
-      <div class="env-seal">
-        <svg viewBox="0 0 24 24"><path d="M12 4c-2 2-5 2-6 5 -1 4 2 8 6 9 4-1 7-5 6-9 -1-3-4-3-6-5Z"/></svg>
+    <svg class="bunting" viewBox="0 0 600 80" aria-hidden="true">
+      <path d="M0 8 Q300 40 600 8" fill="none" stroke="#C98A4B" stroke-width="2.5"/>
+      <path d="M46 13.8 L74 13.8 L60 39.8 Z" fill="#E4573D"/>
+      <path d="M106 18.2 L134 18.2 L120 44.2 Z" fill="#F2A93B"/>
+      <path d="M166 21.4 L194 21.4 L180 47.4 Z" fill="#2E9E8F"/>
+      <path d="M226 23.4 L254 23.4 L240 49.4 Z" fill="#F2789F"/>
+      <path d="M286 24 L314 24 L300 50 Z" fill="#7C5CA8"/>
+      <path d="M346 23.4 L374 23.4 L360 49.4 Z" fill="#E4573D"/>
+      <path d="M406 21.4 L434 21.4 L420 47.4 Z" fill="#F2A93B"/>
+      <path d="M466 18.2 L494 18.2 L480 44.2 Z" fill="#2E9E8F"/>
+      <path d="M526 13.8 L554 13.8 L540 39.8 Z" fill="#F2789F"/>
+    </svg>
+
+    <p class="envelope-hint">Вам письмо! <em>💌</em></p>
+    <p class="envelope-sub">Тёплые поздравления для самых любимых учителей</p>
+
+    <div class="env-wrap">
+      <div class="envelope" id="envelope">
+        <div class="env-body"></div>
+        <div class="env-letter-peek"></div>
+        <div class="env-flap"></div>
+        <div class="vr vr-top"></div>
+        <div class="vr vr-bottom"></div>
+        <div class="hr hr-left"></div>
+        <div class="hr hr-right"></div>
+        <svg class="bow" viewBox="0 0 64 44" aria-hidden="true">
+          <path d="M32 20 C22 6 6 8 7 17 C8 27 22 27 32 20Z" fill="#E4573D" stroke="#C13F27" stroke-width="2"/>
+          <path d="M32 20 C42 6 58 8 57 17 C56 27 42 27 32 20Z" fill="#E4573D" stroke="#C13F27" stroke-width="2"/>
+          <path d="M28 24 C24 32 25 38 30 40 C34 38 35 32 32 24Z" fill="#D14A31" stroke="#C13F27" stroke-width="1.5"/>
+          <rect x="26" y="14" width="12" height="12" rx="3.5" fill="#F2A93B" stroke="#D98E1F" stroke-width="2"/>
+        </svg>
       </div>
+      <div class="env-tag" id="env-tag">Для вас!</div>
+      <span class="spark sp1">✦</span>
+      <span class="spark sp2">✦</span>
+      <span class="spark sp3">✦</span>
+      <span class="spark sp4">✦</span>
+      <span class="spark sp5">✦</span>
     </div>
-    <p class="tap-cue">нажмите, чтобы открыть</p>
+
+    <p class="tap-cue">нажмите, чтобы развернуть подарок</p>
   </section>
 
   <main id="content">
 
+    <!-- ГЕРОЙ: светлое утреннее окно -->
     <section class="stage stage-hero">
-      <!-- Иллюстрация: окно класса на закате -->
       <svg class="hero-scene" id="hero-svg" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <clipPath id="windowClip">
             <path d="M150 470 L150 220 Q150 55 400 55 Q650 55 650 220 L650 470 Z"/>
           </clipPath>
+          <linearGradient id="wallGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#FCF3E0"/>
+            <stop offset="100%" stop-color="#F4E3C6"/>
+          </linearGradient>
           <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#1c3327"/>
-            <stop offset="42%" stop-color="#3c5c45"/>
-            <stop offset="72%" stop-color="#c9803f"/>
-            <stop offset="100%" stop-color="#eeb262"/>
+            <stop offset="0%" stop-color="#7EC8F0"/>
+            <stop offset="55%" stop-color="#BDE8F8"/>
+            <stop offset="100%" stop-color="#FFF0C2"/>
           </linearGradient>
           <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stop-color="#f7dd9a" stop-opacity="0.95"/>
-            <stop offset="100%" stop-color="#f7dd9a" stop-opacity="0"/>
+            <stop offset="0%" stop-color="#FFE28A" stop-opacity="0.9"/>
+            <stop offset="100%" stop-color="#FFE28A" stop-opacity="0"/>
           </radialGradient>
         </defs>
 
-        <rect width="800" height="500" fill="#182922"/>
+        <rect width="800" height="500" fill="url(#wallGrad)"/>
 
+        <!-- вид из окна -->
         <g clip-path="url(#windowClip)">
           <rect x="150" y="55" width="500" height="415" fill="url(#skyGrad)"/>
-          <circle cx="400" cy="330" r="95" fill="url(#sunGlow)"/>
-          <circle cx="400" cy="330" r="44" fill="#f8e2a8" opacity="0.9"/>
-          <path d="M150 405 Q260 365 400 390 T650 372 L650 470 L150 470 Z" fill="#152720"/>
-          <path d="M150 432 Q280 408 400 422 T650 412 L650 470 L150 470 Z" fill="#0f1d17"/>
+          <circle cx="400" cy="300" r="92" fill="url(#sunGlow)"/>
+          <g stroke="#FFCF4D" stroke-width="3" stroke-linecap="round" opacity="0.85">
+            <animateTransform attributeName="transform" type="rotate" from="0 400 300" to="360 400 300" dur="70s" repeatCount="indefinite"/>
+            <line x1="400" y1="238" x2="400" y2="222"/><line x1="400" y1="362" x2="400" y2="378"/>
+            <line x1="338" y1="300" x2="322" y2="300"/><line x1="462" y1="300" x2="478" y2="300"/>
+            <line x1="356" y1="256" x2="345" y2="245"/><line x1="444" y1="256" x2="455" y2="245"/>
+            <line x1="356" y1="344" x2="345" y2="355"/><line x1="444" y1="344" x2="455" y2="355"/>
+          </g>
+          <circle cx="400" cy="300" r="42" fill="#FFD34E"/>
+          <path d="M150 400 Q260 360 400 385 T650 366 L650 470 L150 470 Z" fill="#9FD98A"/>
+          <path d="M150 430 Q280 405 400 419 T650 409 L650 470 L150 470 Z" fill="#7CC465"/>
+          <!-- цветы на лугу -->
+          <g stroke="#4E9455" stroke-width="2" stroke-linecap="round">
+            <line x1="230" y1="428" x2="230" y2="412"/>
+            <line x1="330" y1="438" x2="330" y2="424"/>
+            <line x1="480" y1="436" x2="480" y2="422"/>
+            <line x1="575" y1="426" x2="575" y2="412"/>
+          </g>
+          <circle cx="230" cy="409" r="4" fill="#F2789F"/><circle cx="230" cy="409" r="1.6" fill="#FFF3C4"/>
+          <circle cx="330" cy="421" r="4" fill="#FFFDF7"/><circle cx="330" cy="421" r="1.6" fill="#F2A93B"/>
+          <circle cx="480" cy="419" r="4" fill="#7C5CA8"/><circle cx="480" cy="419" r="1.6" fill="#FFF3C4"/>
+          <circle cx="575" cy="409" r="4" fill="#E4573D"/><circle cx="575" cy="409" r="1.6" fill="#FFF3C4"/>
+          <!-- птицы -->
+          <g stroke="#2E6E75" stroke-width="2.4" fill="none" stroke-linecap="round" opacity="0.9">
+            <path d="M300 150 q6 -7 12 0 q6 -7 12 0"/>
+            <path d="M345 128 q5 -6 10 0 q5 -6 10 0"/>
+            <path d="M500 170 q5 -6 10 0 q5 -6 10 0"/>
+          </g>
         </g>
 
-        <path d="M150 470 L150 220 Q150 55 400 55 Q650 55 650 220 L650 470" fill="none" stroke="#6B4A2C" stroke-width="18" stroke-linejoin="round"/>
-        <g stroke="#6B4A2C" stroke-width="9" clip-path="url(#windowClip)">
+        <!-- рама окна -->
+        <path d="M150 470 L150 220 Q150 55 400 55 Q650 55 650 220 L650 470" fill="none" stroke="#C98A4B" stroke-width="18" stroke-linejoin="round"/>
+        <g stroke="#C98A4B" stroke-width="9" clip-path="url(#windowClip)">
           <line x1="400" y1="55" x2="400" y2="470"/>
           <line x1="150" y1="268" x2="650" y2="268"/>
         </g>
-        <rect x="118" y="464" width="564" height="22" rx="4" fill="#6B4A2C"/>
+        <rect x="112" y="462" width="576" height="24" rx="5" fill="#B87A3D"/>
+        <rect x="112" y="462" width="576" height="7" rx="3" fill="#D89B5E"/>
 
-        <!-- растение слева -->
-        <g transform="translate(195,464)">
-          <rect x="-18" y="-28" width="36" height="30" rx="4" fill="#5C3C22"/>
-          <path d="M0 -28 C-22 -58 -10 -86 0 -98 C10 -86 22 -58 0 -28Z" fill="#2E4A3D"/>
-          <path d="M0 -30 C-14 -52 4 -76 9 -58 C12 -44 -2 -36 0 -30Z" fill="#4a7059"/>
-        </g>
+        <!-- шторы -->
+        <path class="curtain" d="M120 34 C92 70 86 260 98 438 Q106 452 120 446 L120 34 Z" fill="#F2836B"/>
+        <path d="M120 40 C104 120 102 300 110 440" stroke="#D9604C" stroke-width="3" fill="none" opacity="0.55"/>
+        <path class="curtain" d="M680 34 C708 70 714 260 702 438 Q694 452 680 446 L680 34 Z" fill="#F2836B"/>
+        <path d="M680 40 C696 120 698 300 690 440" stroke="#D9604C" stroke-width="3" fill="none" opacity="0.55"/>
+        <rect x="96" y="22" width="608" height="9" rx="4.5" fill="#B87A3D"/>
+        <circle cx="96" cy="26" r="8" fill="#E9B84C"/><circle cx="704" cy="26" r="8" fill="#E9B84C"/>
 
-        <!-- книги и яблоко справа -->
-        <g transform="translate(555,464)">
-          <rect x="-30" y="-14" width="60" height="14" rx="2" fill="#C1642F"/>
-          <rect x="-26" y="-27" width="52" height="14" rx="2" fill="#D9AC4F"/>
-          <rect x="-22" y="-40" width="44" height="14" rx="2" fill="#8FA37E"/>
-          <circle cx="-2" cy="-54" r="10" fill="#B5442A"/>
-          <path d="M-2 -64 L0 -70" stroke="#4a2f18" stroke-width="3" fill="none"/>
-        </g>
-
-        <!-- лампа -->
-        <g transform="translate(400,25)">
-          <g id="lamp-swing">
-            <line x1="0" y1="0" x2="0" y2="52" stroke="#6B4A2C" stroke-width="3"/>
-            <circle cx="0" cy="66" r="15" fill="#f8e2a8"/>
-            <circle cx="0" cy="66" r="28" fill="#f8e2a8" opacity="0.22">
-              <animate attributeName="opacity" values="0.12;0.32;0.12" dur="3.2s" repeatCount="indefinite"/>
-            </circle>
-            <animateTransform attributeName="transform" type="rotate" values="-4 0 0;4 0 0;-4 0 0" dur="4.6s" repeatCount="indefinite"/>
+        <!-- гирлянда на стене -->
+        <g>
+          <path d="M-10 66 Q400 118 810 66" fill="none" stroke="#C98A4B" stroke-width="2.5"/>
+          <g>
+            <animateTransform attributeName="transform" type="rotate" values="-0.8 400 66;0.8 400 66;-0.8 400 66" dur="5.5s" repeatCount="indefinite"/>
+            <path d="M78 74 L104 74 L91 98 Z" fill="#E4573D"/>
+            <path d="M178 82 L204 82 L191 106 Z" fill="#F2A93B"/>
+            <path d="M278 88 L304 88 L291 112 Z" fill="#2E9E8F"/>
+            <path d="M378 90 L404 90 L391 114 Z" fill="#F2789F"/>
+            <path d="M478 88 L504 88 L491 112 Z" fill="#7C5CA8"/>
+            <path d="M578 82 L604 82 L591 106 Z" fill="#E4573D"/>
+            <path d="M678 74 L704 74 L691 98 Z" fill="#F2A93B"/>
           </g>
         </g>
+
+        <!-- растение слева -->
+        <g transform="translate(195,462)">
+          <rect x="-18" y="-28" width="36" height="30" rx="5" fill="#E07B4F"/>
+          <rect x="-18" y="-28" width="36" height="7" rx="3.5" fill="#F2926B"/>
+          <path d="M0 -28 C-22 -58 -10 -86 0 -98 C10 -86 22 -58 0 -28Z" fill="#4FA46B"/>
+          <path d="M0 -30 C-14 -52 4 -76 9 -58 C12 -44 -2 -36 0 -30Z" fill="#6FBF85"/>
+        </g>
+
+        <!-- книги, яблоко и часы справа -->
+        <g transform="translate(555,462)">
+          <rect x="-30" y="-14" width="60" height="14" rx="3" fill="#E4573D"/>
+          <rect x="-26" y="-27" width="52" height="14" rx="3" fill="#F2A93B"/>
+          <rect x="-22" y="-40" width="44" height="14" rx="3" fill="#7FB56A"/>
+          <circle cx="-2" cy="-54" r="10" fill="#D8432F"/>
+          <path d="M-2 -64 L0 -71" stroke="#4A3B2A" stroke-width="3" fill="none" stroke-linecap="round"/>
+          <path d="M-9 -55 q3 4 7 1" stroke="#8ED6A0" stroke-width="2" fill="none" stroke-linecap="round"/>
+          <circle cx="20" cy="-52" r="8" fill="#FFFDF7" stroke="#E9B84C" stroke-width="2.5"/>
+          <path d="M20 -52 L20 -57 M20 -52 L24 -50" stroke="#4A3B2A" stroke-width="1.6" stroke-linecap="round"/>
+        </g>
+
+        <!-- пол -->
+        <rect x="0" y="472" width="800" height="28" fill="#EAD5B2"/>
+        <line x1="0" y1="480" x2="800" y2="480" stroke="#D9BE93" stroke-width="1.5"/>
+        <line x1="0" y1="490" x2="800" y2="490" stroke="#D9BE93" stroke-width="1.5"/>
       </svg>
 
-      <div class="hero-scrim"></div>
-
       <div class="hero-content">
-        <p class="chalk-eyebrow" id="date-text"></p>
-        <h1 class="chalk-title">С Днём<br>Учителя!</h1>
-        <p class="chalk-sub">Всем, кто учит, вдохновляет и верит в нас</p>
-        <p class="chalk-line">Этот день — для каждого учителя, который когда-либо менял чью-то жизнь к лучшему</p>
+        <span class="date-pill" id="date-pill"></span>
+        <h1 class="hero-title">С Днём<br><span>Учителя!</span></h1>
+        <p class="hero-sub">Всем, кто учит, вдохновляет и верит в нас</p>
+        <p class="hero-line">Этот день — для каждого учителя, который когда-либо менял чью-то жизнь к лучшему</p>
 
         <button class="sound-btn" id="sound-toggle" type="button">
           <svg viewBox="0 0 24 24"><path d="M4 9v6h4l6 5V4L8 9H4Z"/></svg>
@@ -275,13 +489,28 @@
       <div class="scroll-cue">↓ листайте вниз</div>
     </section>
 
-    <section class="stage stage-subjects board-texture">
-      <p class="subjects-heading">Спасибо за каждый урок</p>
+    <!-- ПРЕДМЕТЫ -->
+    <section class="stage stage-subjects">
+      <svg class="bunting" viewBox="0 0 600 80" aria-hidden="true">
+        <path d="M0 8 Q300 40 600 8" fill="none" stroke="#C98A4B" stroke-width="2.5"/>
+        <path d="M46 13.8 L74 13.8 L60 39.8 Z" fill="#2E9E8F"/>
+        <path d="M106 18.2 L134 18.2 L120 44.2 Z" fill="#F2789F"/>
+        <path d="M166 21.4 L194 21.4 L180 47.4 Z" fill="#E4573D"/>
+        <path d="M226 23.4 L254 23.4 L240 49.4 Z" fill="#F2A93B"/>
+        <path d="M286 24 L314 24 L300 50 Z" fill="#7C5CA8"/>
+        <path d="M346 23.4 L374 23.4 L360 49.4 Z" fill="#2E9E8F"/>
+        <path d="M406 21.4 L434 21.4 L420 47.4 Z" fill="#F2789F"/>
+        <path d="M466 18.2 L494 18.2 L480 44.2 Z" fill="#E4573D"/>
+        <path d="M526 13.8 L554 13.8 L540 39.8 Z" fill="#F2A93B"/>
+      </svg>
+      <p class="subjects-heading reveal">Спасибо за каждый урок</p>
+      <p class="subjects-sub reveal" id="subjects-intro"></p>
       <div class="subjects-grid" id="subjects-grid"></div>
     </section>
 
+    <!-- ПИСЬМО -->
     <section class="stage stage-letter">
-      <div class="paper-card">
+      <div class="paper-card reveal">
         <span class="sprigs">
           <svg viewBox="0 0 44 26"><path d="M2 24 Q10 6 40 2"/><path d="M10 18 Q14 12 20 12"/><path d="M16 12 Q19 8 24 8"/><path d="M22 7 Q25 4 29 4"/></svg>
           <svg class="right" viewBox="0 0 44 26"><path d="M2 24 Q10 6 40 2"/><path d="M10 18 Q14 12 20 12"/><path d="M16 12 Q19 8 24 8"/><path d="M22 7 Q25 4 29 4"/></svg>
@@ -292,9 +521,29 @@
       </div>
     </section>
 
-    <section class="stage stage-footer board-texture">
-      <p class="footer-line">Спасибо, что вы есть 🍎</p>
-      <p class="footer-credit">сделано с теплом ко Дню учителя</p>
+    <!-- СТИКЕРЫ -->
+    <section class="stage stage-notes">
+      <p class="notes-heading reveal">Слова, которые мы запомним</p>
+      <div class="notes-board reveal" id="notes-board"></div>
+    </section>
+
+    <!-- ФУТЕР -->
+    <section class="stage stage-footer">
+      <svg class="bunting" viewBox="0 0 600 80" aria-hidden="true">
+        <path d="M0 8 Q300 40 600 8" fill="none" stroke="#C98A4B" stroke-width="2.5"/>
+        <path d="M46 13.8 L74 13.8 L60 39.8 Z" fill="#F2A93B"/>
+        <path d="M106 18.2 L134 18.2 L120 44.2 Z" fill="#E4573D"/>
+        <path d="M166 21.4 L194 21.4 L180 47.4 Z" fill="#7C5CA8"/>
+        <path d="M226 23.4 L254 23.4 L240 49.4 Z" fill="#2E9E8F"/>
+        <path d="M286 24 L314 24 L300 50 Z" fill="#F2789F"/>
+        <path d="M346 23.4 L374 23.4 L360 49.4 Z" fill="#F2A93B"/>
+        <path d="M406 21.4 L434 21.4 L420 47.4 Z" fill="#E4573D"/>
+        <path d="M466 18.2 L494 18.2 L480 44.2 Z" fill="#7C5CA8"/>
+        <path d="M526 13.8 L554 13.8 L540 39.8 Z" fill="#2E9E8F"/>
+      </svg>
+      <div class="footer-emoji reveal">🍎</div>
+      <p class="footer-line reveal">Спасибо, что вы <em>есть</em></p>
+      <p class="footer-credit reveal">сделано с теплом ко Дню учителя</p>
     </section>
 
   </main>
@@ -304,44 +553,82 @@
   const CONFIG = {
     dateText: "5 октября",
     subjects: [
-      "Математика","Литература","Физика","История",
-      "Музыка","Физкультура","Химия","Иностранный язык",
-      "Биология","Информатика","География","Рисование"
+      { name:"Математика",   icon:"<path d='M4 7h16M4 12h10M4 17h7'/>" },
+      { name:"Литература",   icon:"<path d='M4 5c3-1.5 6-1.5 8 0 2-1.5 5-1.5 8 0v14c-3-1.5-6-1.5-8 0-2-1.5-5-1.5-8 0Z M12 5v14'/>" },
+      { name:"Физика",       icon:"<circle cx='12' cy='12' r='2.4'/><ellipse cx='12' cy='12' rx='10' ry='4.4'/><ellipse cx='12' cy='12' rx='10' ry='4.4' transform='rotate(60 12 12)'/><ellipse cx='12' cy='12' rx='10' ry='4.4' transform='rotate(120 12 12)'/>" },
+      { name:"История",      icon:"<path d='M12 4v16M5 8h6M5 12h4M5 16h6M13 8h6M13 12h4M13 16h6'/>" },
+      { name:"Музыка",       icon:"<path d='M9 18V6l10-2v12'/><circle cx='6.5' cy='18' r='2.5'/><circle cx='16.5' cy='16' r='2.5'/>" },
+      { name:"Физкультура",  icon:"<circle cx='12' cy='12' r='9'/><path d='M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18'/>" },
+      { name:"Химия",        icon:"<path d='M10 3h4M11 3v6l-5.2 8.8A2.4 2.4 0 0 0 7.9 21h8.2a2.4 2.4 0 0 0 2.1-3.2L13 9V3'/><circle cx='11' cy='16' r='1.2'/><circle cx='14.5' cy='13.5' r='1'/>" },
+      { name:"Языки",        icon:"<path d='M3 6h10M8 4v2c0 4-2 7-5 9M6 10c1.5 3 4 5.5 7 7M13.5 20l4-9 4 9M14.8 17h5.4'/>" },
+      { name:"Биология",     icon:"<path d='M12 21c-4-3-7-6.2-7-10a7 7 0 0 1 14 0c0 3.8-3 7-7 10Z'/><path d='M12 21V9M12 12l-2.5-2M12 14l2.5-2'/>" },
+      { name:"Информатика",  icon:"<rect x='3' y='5' width='18' height='12' rx='2'/><path d='M8 21h8M12 17v4'/><path d='M8 9l2.5 2.5L8 14M13 14h4'/>" },
+      { name:"География",    icon:"<circle cx='12' cy='12' r='9'/><path d='M3.5 9h17M3.5 15h17M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18'/>" },
+      { name:"Рисование",    icon:"<path d='M12 3a9 9 0 1 0 0 18c1.6 0 2-1 2-2s-.6-2-2-2c-1.2 0-1.8-.8-1.8-1.6 0-.9.8-1.4 1.8-1.4H16a5 5 0 0 0 5-5c0-3.9-4-6-9-6Z'/><circle cx='8' cy='10' r='1'/><circle cx='12' cy='7.5' r='1'/><circle cx='15.8' cy='9.5' r='1'/>" }
     ],
+    subjectsIntro: "Двенадцать дверей в разные миры — и вы открывали их нам снова и снова",
     letterParagraphs: [
       "Сегодня особенный день — праздник тех, кто щедро делится знаниями, терпением и добротой. Спасибо, что вкладываете в нас частичку себя, верите в каждого и умеете вдохновлять даже в самый обычный вторник.",
       "Пусть в вашей жизни будет много благодарных учеников, светлых моментов и тепла — точно так, как вы дарите его нам каждый день."
     ],
-    signature: "С любовью и благодарностью,\nваши ученики"
+    signature: "С любовью и благодарностью,\nваши ученики",
+    notes: [
+      "«Сердце отдаёшь — и время не жаль»",
+      "«Терпение и труд всё перетрут»",
+      "«Кто учит — тот светит»",
+      "«Лучший урок — тот, что от сердца»",
+      "«Спасибо за веру в нас»",
+      "«Вы — наш самый главный пример»"
+    ]
   };
 
-  document.getElementById('date-text').textContent = CONFIG.dateText;
-  document.getElementById('signature').innerHTML = CONFIG.signature.replace('\n','<br>');
+  const CONFETTI_COLORS = ['#E4573D','#F2A93B','#2E9E8F','#7C5CA8','#F2789F','#E9B84C'];
+
+  document.getElementById('date-pill').textContent = CONFIG.dateText + ' • День учителя';
+  document.getElementById('signature').textContent = CONFIG.signature;
+  document.getElementById('subjects-intro').textContent = CONFIG.subjectsIntro;
   document.getElementById('letter-body').innerHTML =
     CONFIG.letterParagraphs.map(p => `<p>${p}</p>`).join('');
 
+  /* Карточки предметов */
   const grid = document.getElementById('subjects-grid');
-  CONFIG.subjects.forEach((subject, i) => {
-    const tag = document.createElement('span');
-    tag.className = 'subject-tag';
-    tag.textContent = subject;
-    tag.style.animationDelay = (i * 0.08) + 's';
-    grid.appendChild(tag);
+  CONFIG.subjects.forEach((s, i) => {
+    const card = document.createElement('div');
+    card.className = 'subject-card reveal';
+    card.style.transitionDelay = (i * 0.045) + 's';
+    card.innerHTML = `
+      <svg class="icn" viewBox="0 0 24 24" aria-hidden="true">${s.icon}</svg>
+      <span class="nm">${s.name}</span>
+      <span class="qt">${s.quote || ''}</span>`;
+    grid.appendChild(card);
+  });
+
+  /* Стикеры */
+  const board = document.getElementById('notes-board');
+  CONFIG.notes.forEach(t => {
+    const n = document.createElement('div');
+    n.className = 'note';
+    n.innerHTML = `<span class="pin"></span>${t}`;
+    board.appendChild(n);
   });
 
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  /* Падающие конфетти */
   if(!reduceMotion){
     const dustLayer = document.getElementById('dust-layer');
-    for(let i=0;i<28;i++){
+    for(let i=0;i<20;i++){
       const m = document.createElement('div');
       m.className = 'mote';
-      const size = 2 + Math.random()*2.5;
-      m.style.width = size + 'px';
-      m.style.height = size + 'px';
+      const w = 5 + Math.random()*4;
+      m.style.width = w + 'px';
+      m.style.height = (w + 3 + Math.random()*4) + 'px';
+      m.style.borderRadius = Math.random() < .5 ? '50%' : '2px';
+      m.style.background = CONFETTI_COLORS[i % CONFETTI_COLORS.length];
       m.style.left = Math.random()*100 + 'vw';
-      m.style.animationDuration = (10 + Math.random()*10) + 's';
-      m.style.animationDelay = (Math.random()*10) + 's';
+      m.style.setProperty('--sway', (Math.random()*120 - 60) + 'px');
+      m.style.animationDuration = (11 + Math.random()*9) + 's';
+      m.style.animationDelay = (Math.random()*11) + 's';
       dustLayer.appendChild(m);
     }
   } else {
@@ -349,19 +636,48 @@
     if(heroSvg.pauseAnimations) heroSvg.pauseAnimations();
   }
 
-  /* Конверт */
+  /* ===================== КОНВЕРТ-ПОДАРОК ===================== */
   const envelope = document.getElementById('envelope');
   const stageEnvelope = document.getElementById('stage-envelope');
+  const envTag = document.getElementById('env-tag');
+
+  function burstConfetti(){
+    if(reduceMotion) return;
+    const layer = document.getElementById('burst-layer');
+    const r = envelope.getBoundingClientRect();
+    const cx = r.left + r.width/2, cy = r.top + r.height*0.5;
+    for(let i=0;i<70;i++){
+      const p = document.createElement('div');
+      p.className = 'confetti-piece';
+      const ang = Math.random()*Math.PI*2;
+      const dist = 90 + Math.random()*190;
+      p.style.setProperty('--dx', (Math.cos(ang)*dist) + 'px');
+      p.style.setProperty('--dy', (Math.sin(ang)*dist*0.85) + 'px');
+      p.style.setProperty('--rot', (Math.random()*720 - 360) + 'deg');
+      p.style.background = CONFETTI_COLORS[i % CONFETTI_COLORS.length];
+      p.style.width = (5 + Math.random()*6) + 'px';
+      p.style.height = (8 + Math.random()*8) + 'px';
+      p.style.borderRadius = Math.random() < .5 ? '50%' : '2px';
+      p.style.left = cx + 'px';
+      p.style.top = cy + 'px';
+      p.style.animationDelay = (Math.random()*0.15) + 's';
+      p.style.animationDuration = (1.1 + Math.random()*0.9) + 's';
+      layer.appendChild(p);
+      setTimeout(() => p.remove(), 2600);
+    }
+  }
 
   function openEnvelope(){
     if(envelope.classList.contains('opened')) return;
     envelope.classList.add('opened');
+    envTag.style.opacity = '0';
+    setTimeout(burstConfetti, 150);
     setTimeout(() => {
       stageEnvelope.classList.add('opened');
       document.body.classList.remove('locked');
       document.body.classList.add('unlocked');
       setTimeout(() => { stageEnvelope.style.display = 'none'; }, 750);
-    }, 650);
+    }, 1050);
   }
   envelope.addEventListener('click', openEnvelope);
   envelope.addEventListener('keydown', e => {
@@ -369,7 +685,18 @@
   });
   envelope.setAttribute('tabindex','0');
   envelope.setAttribute('role','button');
-  envelope.setAttribute('aria-label','Открыть конверт');
+  envelope.setAttribute('aria-label','Открыть конверт-подарок');
+
+  /* Появление секций при прокрутке */
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if(e.isIntersecting){
+        e.target.classList.add('visible');
+        io.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
 
   /* ============================================================
      МУЗЫКА — оригинальная эмбиент-композиция на Web Audio API.
